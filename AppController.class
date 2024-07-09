@@ -1,0 +1,50 @@
+package com.example.deleteme;
+
+import android.app.Application;
+import android.content.Context;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
+
+public class AppController extends Application {
+    private static Context ctx;
+    public static AppController instance;
+    public static RequestQueue requestQueue;
+
+    public AppController(Context ctx) {
+        this.ctx = ctx;
+        requestQueue = getRequestQueue();
+    }
+
+    public AppController() {
+    }
+
+    public static RequestQueue getRequestQueue() {
+        if (requestQueue == null) {
+            return requestQueue = Volley.newRequestQueue(ctx.getApplicationContext());
+        }
+        return requestQueue;
+    }
+
+    public static synchronized AppController getInstance(Context ctx) {
+        if (instance == null) {
+            return instance = new AppController(ctx);
+        }
+        return instance;
+    }
+
+    public static synchronized AppController getInstance() {
+        return instance;
+    }
+
+    public void addToRequestQueue(Request queue) {
+        getRequestQueue().add(queue);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        instance = this;
+    }
+}
