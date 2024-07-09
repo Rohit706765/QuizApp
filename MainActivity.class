@@ -1,0 +1,125 @@
+package com.example.deleteme;
+
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
+
+import com.example.deleteme.Data.CallBack;
+import com.example.deleteme.Data.Repositry;
+import com.example.deleteme.Model.Question;
+import com.example.deleteme.databinding.ActivityMainBinding;
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity {
+
+    Button btnNext;
+    List<Question> questionList;
+    ActivityMainBinding binding;
+    int currentIndex = 0;
+
+    public static final String TAG = "MainActivity";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = DataBindingUtil.setContentView(MainActivity.this, R.layout.activity_main);
+
+        new AppController(this);
+    
+        questionList = new Repositry().questionList(new CallBack() {
+            @Override
+            public void processFinised(List<Question> questions) {
+                                                        // when our data is loaded it will automatically notified it
+                questionList = questions;
+                binding.tvQuestionTExt.setText(questions.get(currentIndex).getQuestion());
+            }
+        });
+        binding.btnTrue.setOnClickListener(view -> {
+            findAnswer(true);
+        });
+
+        binding.btnFalse.setOnClickListener(view -> {
+            findAnswer(false);
+
+        });
+
+        binding.btnNext.setOnClickListener(view -> {
+            ++currentIndex;
+            binding.tvQuestionTExt.setText(questionList.get(currentIndex).getQuestion());
+            binding.tvQuestionUpdate.setText(currentIndex + "/913");
+        });
+    }
+
+    // animation feature
+    public void shakeAnimation() {
+        Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.shake_animation);
+        binding.tvQuestionTExt.setAnimation(animation);
+
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                binding.tvQuestionTExt.setTextColor(Color.RED);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                binding.tvQuestionTExt.setTextColor(Color.WHITE);
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+    }
+
+    public void fadeAnimation() {
+        AlphaAnimation alphaAnimation = new AlphaAnimation(1.0f, 0.0f);
+        alphaAnimation.setDuration(300);
+        alphaAnimation.setRepeatCount(1);
+        alphaAnimation.setRepeatMode(Animation.REVERSE);
+
+        binding.cardView.setAnimation(alphaAnimation);
+        alphaAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                binding.tvQuestionTExt.setTextColor(Color.GREEN);
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                binding.tvQuestionTExt.setTextColor(Color.WHITE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+    }
+
+    public void findAnswer(boolean userChoiceOption) {
+        boolean answer = questionList.get(currentIndex).isStatus();
+        int snackMessageId = 0;
+        if (answer == userChoiceOption) {
+            snackMessageId = R.string.correct_answer;
+            fadeAnimation();
+        } else {
+            snackMessageId = R.string.wrong_answer;
+            shakeAnimation();
+        }
+
+        Snackbar.make(binding.cardView, snackMessageId, Snackbar.LENGTH_LONG).show();
+    }
+}
